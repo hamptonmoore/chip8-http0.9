@@ -1,0 +1,14 @@
+{
+  "name": "chip8",
+  "version": "1.0.0",
+  "description": "",
+  "main": "chip8.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Hampton Moore",
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^7.1.0"
+  }
+}

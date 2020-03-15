@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chip Emulator</title>
+</head>
+<body>
+<canvas id="screen" width="256" height="128" style="border:1px solid #000000;">
+</canvas>
+<script src="chip8.js"></script>
+<script>
+	let c = document.getElementById("screen");
+	let ctx = c.getContext("2d");
+	ctx.scale(4, 4);
+
+	function render(memory) {
+		ctx.clearRect(0, 0, 64, 32);
+		ctx.fillStyle = 'green';
+		for (let i = 0; i < memory.length; i++) {
+			let bin = memory[i].toString(2).padStart(8);
+			for (let j = 0; j < 8; j++) {
+				if (bin.charAt(j) === "1") {
+					let pos = (i * 8) + j;
+					ctx.fillRect(pos % 64, Math.floor(pos / 64), 1, 1);
+				}
+			}
+
+		}
+	}
+
+	let chip = new chip8();
+
+	chip.attach("screen", render);
+
+	setInterval(function () {
+		chip.interupt("timer");
+	}, 1000 / 60);
+
+	chip.load16Bit(new Uint16Array([
+		0x6000, // Set V0 to 0x00
+		0x6100, // Set V1 to 0x00
+		0x6201, // Set V2 to 0x01
+		0x00E0, // Clear screen
+		0xF407, // Set V4 to timer val
+		0x4400, // if V4 === 0
+		0xD018, // Draw sprite at V0, V1, with height of 8
+		0x4400, // if V4 === 0
+		0x7001, // Add one to V0
+		0x4039, // if V0 === 64
+		0x7101, // Add one to V1
+		0x4039, // if V0 === 64
+		0x6000, // Set v0 to 0
+		0x4400, // if V4 === 0
+		0xF215, // Set timer to V2
+		0x1204, // Jump to line 4
+		0x00EE
+	]), 0x200);
+	chip.load8Bit(new Uint8Array([
+		0b00111100,
+		0b01100110,
+		0b11000011,
+		0b10000001,
+		0b10000001,
+		0b11000011,
+		0b01100110,
+		0b00111100,
+	]), 0x000);
+	chip.run(0);
+	// console.log(chip.dump());
+</script>
+</body>
+</html>
