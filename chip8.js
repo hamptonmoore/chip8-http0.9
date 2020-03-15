@@ -1,6 +1,7 @@
 class chip8 {
 	memory;
-	screen = null;
+	screen = function () {
+	};
 
 	constructor() {
 		/*
@@ -38,7 +39,7 @@ class chip8 {
 		return this.memory;
 	}
 
-	// This count makes it so the mainloop is never hogged up, but it also isnt slowed down by constantly calling setTImeout0
+	// This count makes it so the event loop is never hogged up, but it also is not slowed down by constantly calling setTImeout0
 	run = (count) => {
 		if (this.step() !== -1) {
 			if (count > 512) {
@@ -84,6 +85,8 @@ class chip8 {
 						}
 						break;
 					case 0xEE: // (00 EE) Returns from a subroutine.
+						return -1;
+					case 0x00:
 						return -1;
 				}
 				break;
@@ -277,9 +280,7 @@ class chip8 {
 	}
 
 	renderScreen() {
-		if (this.screen !== null) {
-			this.screen(this.memory.slice(-0x100));
-		}
+		this.screen(this.memory.slice(-0x100));
 	}
 
 	incPtr(inc) {
