@@ -1,5 +1,5 @@
 class chip8 {
-	memory;
+	memory = null;
 	screen = function () {
 	};
 
@@ -13,7 +13,8 @@ class chip8 {
 		   0xED2-0xED3 stores l, Big-Endian
 		   0xED4 is the Delay Timer
 		   0xED5 is the Sound Timer
-		   0xED6 timer decrement interrupt
+		   0xED6 timer decrement interrupt, boolean
+		   0xED7 halted, boolean
 		   0xF00-0xFFF is used to store the display which is 64x32
 
 		*/
@@ -39,6 +40,14 @@ class chip8 {
 		return this.memory;
 	}
 
+	dumpRange(start, stop) {
+		if (stop === undefined) {
+			stop = this.memory.length;
+		}
+
+		return this.memory.slice(start, stop);
+	}
+
 	// This count makes it so the event loop is never hogged up, but it also is not slowed down by constantly calling setTImeout0
 	run = (count) => {
 		if (this.step() !== -1) {
@@ -49,8 +58,6 @@ class chip8 {
 			} else {
 				this.run(count + 1)
 			}
-		} else {
-			console.log("Killing program")
 		}
 	};
 
@@ -85,15 +92,20 @@ class chip8 {
 						}
 						break;
 					case 0xEE: // (00 EE) Returns from a subroutine.
+						// TODO subroutine exiting
+						this.memory[0xED7] = 1;
 						return -1;
 					case 0x00:
+						this.memory[0xED7] = 1;
 						return -1;
 				}
 				break;
-			case 0x1: // (1N NN) Jumps to address NNN.
-				this.memory[0xED0] = head % 16;
-				this.memory[0xED1] = tail;
+			case 0x1: {// (1N NN) Jumps to address NNN.
+				let pos = (head * 256 + tail - 2); // Two is subtracted so that when the CPU steps after this one is on the correct instruction
+				this.memory[0xED0] = Math.floor(pos / 256) % 16;
+				this.memory[0xED1] = pos % 256;
 				break;
+			}
 			case 0x2: // (2N NN) Calls subroutine at NNN.
 				// TODO program subroutine
 				break;
@@ -302,4 +314,8 @@ class chip8 {
 	}
 
 
+}
+
+if (module) {
+	module.exports = chip8;
 }
