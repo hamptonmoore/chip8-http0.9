@@ -1,72 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Chip Emulator</title>
+	<meta charset="UTF-8">
+	<title>Chip Emulator</title>
 </head>
+
 <body>
-<canvas id="screen" width="256" height="128" style="border:1px solid #000000;">
-</canvas>
-<script src="chip8.js"></script>
-<script>
-	let c = document.getElementById("screen");
-	let ctx = c.getContext("2d");
-	ctx.scale(4, 4);
-
-	function render(memory) {
-		ctx.clearRect(0, 0, 64, 32);
-		ctx.fillStyle = 'green';
-		for (let i = 0; i < memory.length; i++) {
-			let bin = memory[i].toString(2).padStart(8);
-			for (let j = 0; j < 8; j++) {
-				if (bin.charAt(j) === "1") {
-					let pos = (i * 8) + j;
-					ctx.fillRect(pos % 64, Math.floor(pos / 64), 1, 1);
+	<script src="chip8.js"></script>
+	<script>
+		let net = {
+			send: "GET * \r\n",
+			sendIndex: 0,
+			received: "",
+			memory: new Uint8Array(0x1000).fill(0),
+			timeout: false,
+			set: function (addr, value) {
+				if (addr == 0xF02) {
+					console.log(`NET: Chip8 Read Data Flag Set`)
+					this.memory[0xF01] = this.send.charCodeAt(this.sendIndex);
+					this.sendIndex++;
+				} else if (addr == 0xF04) {
+					console.log(`NET: Chip8 Uploaded Data Flag Set`);
+					this.received += String.fromCharCode(this.memory[0xF03]);
+					this.memory[0xF04] = 0;
+				} else {
+					console.log(`NET: SET ${addr.toString(16)} ${value.toString(16)}`)
+					this.memory[addr] = value;
 				}
+
+				return this.memory[addr];
+			},
+			get: function (addr) {
+				return this.memory[addr];
 			}
-
 		}
-	}
 
-	let chip = new chip8();
+		let chip = new chip8();
 
-	chip.attach("screen", render);
+		chip.attach(net);
 
-	setInterval(function () {
-		chip.interupt("timer");
-	}, 1000 / 60);
+		chip.load16Bit(new Uint16Array([
+			// Lets detect the first bit "GET "
+			0x6101, // Set V1 to 0x01
+			0xAF01, // Set L to F01, the boolean set after reading
+			0xF155, // Setting boolean 0xF01,OxF02 to V0,V1, 
+			// When 0xF02 is set to 1 it tells the network driver to store the next char in 0xF01
+			// Lets see is it G?
+			0xF065, // Copy from 0xF01 to V0
+			0x3047, // Skip next line if V0 == Ascii G, hex 47, 
+			0x1500, // If it is not G then jump to address 0x500
+			// Ok lets see if the next is E
+			0xF155, // Setting boolean to get next char
+			0xF065, // Copy from 0xF01 to V0
+			0x3045, // Is V0 == Ascii E, hex 45, 
+			0x1500, // If it is not E then jump to address 0x500
+			// Ok lets see if the next is T
+			0xF155, // Setting boolean to get next char
+			0xF065, // Copy from 0xF01 to V0
+			0x3054, // Is V0 == Ascii T, hex 54, 
+			0x1500, // If it is not T then jump to address 0x500
+			// Ok lets see if the next is a space
+			0xF155, // Setting boolean to get next char
+			0xF065, // Copy from 0xF01 to V0
+			0x3020, // Is V0 == Ascii Space, hex 20, 
+			0x1500, // If it is not Space then jump to address 0x500
+			// Now that we know its a GET request lets see if it is to the only path /
+			0xF155, // Setting boolean to get next char
+			0xF065, // Copy from 0xF01 to V0
+			0x302F, // Is V0 == Ascii Slash, hex 2F, 
+			0x1550 // If it is not Slash then jump to address 0x400
 
-	chip.load16Bit(new Uint16Array([
-		0x6000, // Set V0 to 0x00
-		0x6100, // Set V1 to 0x00
-		0x6201, // Set V2 to 0x01
-		0x00E0, // Clear screen
-		0xF407, // Set V4 to timer val
-		0x4400, // if V4 === 0
-		0xD018, // Draw sprite at V0, V1, with height of 8
-		0x4400, // if V4 === 0
-		0x7001, // Add one to V0
-		0x4039, // if V0 === 64
-		0x7101, // Add one to V1
-		0x4039, // if V0 === 64
-		0x6000, // Set v0 to 0
-		0x4400, // if V4 === 0
-		0xF215, // Set timer to V2
-		0x1204, // Jump to line 4
-		0x00EE
-	]), 0x200);
-	chip.load8Bit(new Uint8Array([
-		0b00111100,
-		0b01100110,
-		0b11000011,
-		0b10000001,
-		0b10000001,
-		0b11000011,
-		0b01100110,
-		0b00111100,
-	]), 0x000);
-	chip.run(0);
-	// console.log(chip.dump());
-</script>
+		]), 0x200);
+
+		// Write 501 error to end of 0x100
+		chip.load16Bit(new Uint16Array([
+			0xA000, // Set l to 0x000, start of 501 message
+			0xFF65, // Copy from 0x000 to 0x560 to V0-VF
+			0xA109, // Set l to 0x109 aka end of the default http message
+			0xFF55, // Move from V0-VF to 0x109 to 0x119
+			0xA010, // set l to 0x010, to copy last bit of 501
+			0xF365, // Copy it to V0-VF
+			0xA119, // Set l to end of message at 0x119
+			0xF355, // Move from V0-VF
+			0x1300 // Go to response sender at 0x300
+		]), 0x500);
+
+		// Write 404 error to end of 0x100
+		chip.load16Bit(new Uint16Array([
+			0xA01A, // Set l to 0x01A, start of 501 message
+			0xFF65, // Copy from 0x01A to 0x02A to V0-VF
+			0xA109, // Set l to 0x109 aka end of the default http message
+			0xFF55, // Move from V0-VF to 0x109 to 0x119
+			0xA02A, // set l to 0x01A, to copy last bit of 404
+			0xF265, // Copy it to V0-V3
+			0xA119, // Set l to end of message at 0x119
+			0xF255, // Move from V0-V3
+			0x1300 // Go to response sender at 0x300
+		]), 0x550);
+
+		// Store data for 501 error "501 not implemented", from 0x000 to 0x013
+		chip.load8Bit(new Uint8Array([
+			53,
+			48,
+			49,
+			32,
+			110,
+			111,
+			116,
+			32,
+			105,
+			109,
+			112,
+			108,
+			101,
+			109,
+			101,
+			110,
+			116,
+			101,
+			100
+		]), 0x000);
+
+		// Store data for 400 error "404 file not found"
+		chip.load8Bit(new Uint8Array([
+			52,
+			48, 
+			52, 
+			32, 
+			102, 
+			105, 
+			108, 
+			101, 
+			32, 
+			110, 
+			111, 
+			116, 
+			32, 
+			102, 
+			111, 
+			117, 
+			110, 
+			100
+		]), 0x01A)
+
+		// Send data from response builder at 0x100-0x2FF to Network driver
+		// If there is a blank treat as EOF
+		chip.load16Bit(new Uint16Array([
+			0xA100, // Set l to 0x100, start of http message
+			0x6100, // Sets V1 to 1
+			0x6200, // Set V2 to 0
+			0xF165, // Copy from current l address to V0
+			0x4000, // Skip next line if V0 is not equal to 0
+			0x00EE, // Haults program
+			0xAF03, // Set l 0xF03
+			0xF255, // Set 0xF03 to current character and set boolean 0xF04
+			0x7201, // Add 1 to V2
+			0xA100, // Set l back to 0x100, start of http message
+			0xF21E, // Set l forward V2 spaces
+			0x1306, // Go to the 4th instrution, copy
+		]), 0x300);
+
+		// HTTP Response builder
+		chip.load8Bit(new Uint8Array([
+			72, // "H"
+			84, // "T"
+			84, // "T"
+			80, // "P"
+			47, // "/"
+			48, // "0"
+			46, // "."
+			57, // "9"
+			32 // " "
+		]), 0x100);
+
+		chip.run(0);
+		//console.log(chip.dump());
+	</script>
 </body>
+
 </html>

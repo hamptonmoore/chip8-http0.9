@@ -1,8 +1,7 @@
 class chip8 {
-	memory = null;
-	screen = function () {
-	};
-
+	memory;
+	attached = false;
+	forceStopped = false;
 	constructor() {
 		/*
 		   0x000-0xE9F is open memory
@@ -15,7 +14,7 @@ class chip8 {
 		   0xED5 is the Sound Timer
 		   0xED6 timer decrement interrupt, boolean
 		   0xED7 halted, boolean
-		   0xF00-0xFFF is used to store the display which is 64x32
+		   0xF00-0xFFF is used for attaching
 
 		*/
 		this.memory = new Uint8Array(0x1000).fill(0);
@@ -51,7 +50,7 @@ class chip8 {
 	// This count makes it so the event loop is never hogged up, but it also is not slowed down by constantly calling setTImeout0
 	run = (count) => {
 		if (this.step() !== -1) {
-			if (count > 512) {
+			if (count > 16) {
 				setTimeout(() => {
 					this.run(0);
 				}, 0);
@@ -63,13 +62,15 @@ class chip8 {
 
 	step() {
 		// load current address
-		let addr = (this.memory[0xED0] * 256) + this.memory[0xED1];
+		let addr = (this.getMemory(0xED0) * 256) + this.getMemory(0xED1);
 		// load current instruction
-		let head = this.memory[addr];
-		let tail = this.memory[addr + 1];
+		let head = this.getMemory(addr);
+		let tail = this.getMemory(addr + 1);
+
+		//console.log(head, tail, addr);
 		// do render
 		let redraw = false;
-		// console.log("Executing 0x" + Number(head).toString(16) + Number(tail).toString(16) + " from 0x" + Number(addr).toString(16));
+		console.log("Executing 0x" + Number(head).toString(16).padEnd(2, "0") + Number(tail).toString(16).padEnd(2, "0") + " from 0x" + Number(addr).toString(16));
 		if (this.memory[0xED6] === 1) {
 			// Delay Timer
 			if (this.memory[0xED4] > 0) {
@@ -88,67 +89,68 @@ class chip8 {
 				switch (tail) {
 					case 0xE0: // (00 E0) Clears the screen.
 						for (let i = 0xF00; i < 0x1000; i++) {
-							this.memory[i] = 0;
+							this.setMemory(i, 0);
 						}
 						break;
 					case 0xEE: // (00 EE) Returns from a subroutine.
 						// TODO subroutine exiting
-						this.memory[0xED7] = 1;
+						this.setMemory(0xED7, 1);
 						return -1;
 					case 0x00:
-						this.memory[0xED7] = 1;
+						this.setMemory(0xED7, 1);
 						return -1;
 				}
 				break;
 			case 0x1: {// (1N NN) Jumps to address NNN.
 				let pos = (head * 256 + tail - 2); // Two is subtracted so that when the CPU steps after this one is on the correct instruction
-				this.memory[0xED0] = Math.floor(pos / 256) % 16;
-				this.memory[0xED1] = pos % 256;
+				this.setMemory(0xED0, Math.floor(pos / 256) % 16);
+				this.setMemory(0xED1, pos % 256);
 				break;
 			}
 			case 0x2: // (2N NN) Calls subroutine at NNN.
 				// TODO program subroutine
 				break;
 			case 0x3: // (3X NN) Skips the next instruction if VX equals NN. (Usually the next instruction is a jump to skip a code block)
-				if (this.memory[0xEA0 + (head % 16)] === tail) {
+				if (this.getMemory(0xEA0 + (head % 16)) === tail) {
 					this.incPtr(1);
 				}
 				break;
 			case 0x4: // (4X NN) Skips the next instruction if VX doesn't equal NN. (Usually the next instruction is a jump to skip a code block)
-				if (this.memory[0xEA0 + (head % 16)] !== tail) {
+				if (this.getMemory(0xEA0 + (head % 16)) !== tail) {
 					this.incPtr(1);
 				}
 				break;
 			case 0x5: // (5X Y0) Skips the next instruction if VX equals VY. (Usually the next instruction is a jump to skip a code block)
-				if (this.memory[0xEA0 + (head % 16)] === [0xEA0 + Math.floor(tail / 16)]) {
+				if (this.getMemory(0xEA0 + (head % 16)) === this.getMemory(0xEA0 + Math.floor(tail / 16)) ) {
 					this.incPtr(1);
 				}
 				break;
 			case 0x6: // (6X NN) Sets VX to NN.
-				this.memory[0xEA0 + (head % 16)] = tail;
+				this.setMemory(0xEA0 + (head % 16), tail);
 				break;
-			case 0x7: // (6X NN) Sets VX to NN.
-				this.memory[0xEA0 + (head % 16)] += tail;
+			case 0x7: // (7X NN) Adds NN to VX. (Carry flag is not changed).
+				let loc = 0xEA0 + (head % 16);
+				this.setMemory(loc, this.getMemory(loc) + tail)
 				break;
 			case 0x8:
 				switch (tail % 16) {
 					case 0x0: // (8X Y0) Sets VX to the value of VY.
-						this.memory[0xEA0 + Math.floor(tail / 16)] = this.memory[0xEA0 + (head % 16)];
+						this.setMemory(0xEA0 + Math.floor(tail / 16), this.getMemory(0xEA0 + (head % 16)) );
 						break;
 					case 0x1: // (8X Y1) Sets VX to VX or VY.
-						this.memory[0xEA0 + (head % 16)] = this.memory[0xEA0 + (head % 16)] | this.memory[0xEA0 + Math.floor(tail / 16)];
+						this.setMemory(0xEA0 + (head % 16), this.getMemory(0xEA0 + (head % 16)) | this.getMemory(0xEA0 + Math.floor(tail / 16)) );
 						break;
 					case 0x2: // (8X Y2) Sets VX to VX and VY.
-						this.memory[0xEA0 + (head % 16)] = this.memory[0xEA0 + (head % 16)] & this.memory[0xEA0 + Math.floor(tail / 16)];
+						this.setMemory(0xEA0 + (head % 16), this.getMemory(0xEA0 + (head % 16)) & this.getMemory(0xEA0 + Math.floor(tail / 16)) );
 						break;
 					case 0x3: // (8X Y3) Sets VX to VX xor VY.
-						this.memory[0xEA0 + (head % 16)] = this.memory[0xEA0 + (head % 16)] ^ this.memory[0xEA0 + Math.floor(tail / 16)];
+						this.setMemory(0xEA0 + (head % 16), this.getMemory(0xEA0 + (head % 16)) ^ this.getMemory(0xEA0 + Math.floor(tail / 16)) );
 						break;
 					case 0x4: {// (8X Y4) Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.
-						let val = this.memory[0xEA0 + (head % 16)] + this.memory[0xEA0 + Math.floor(tail / 16)];
-						this.memory[0xEA0 + (head % 16)] = val;
+						let val = this.getMemory(0xEA0 + (head % 16)) + this.getMemory(0xEA0 + Math.floor(tail / 16));
+						this.setMemory(0xEA0 + (head % 16), val);
 						// Set carry flag
-						this.memory[0xEAF] = val > 255 ? 1 : 0;
+						this.setMemory(0xEAF, val > 255 ? 1 : 0);
 						break;
 					}
 					case 0x5: // (8X Y4) VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
@@ -191,39 +193,35 @@ class chip8 {
 				}
 				break;
 			case 0xA: // (AN NN) Sets I to the address NNN.
-				this.memory[0xED2] = head % 16;
-				this.memory[0xED3] = tail;
+				this.setMemory(0xED2, head % 16);
+				this.setMemory(0xED3, tail);
 				break;
 			case 0xB: // (BN NN) Jumps to address NNN plus V0.
-				this.memory[0xED0] = head % 16;
-				this.memory[0xED1] = tail;
+				this.setMemory(0xED0, head % 16);
+				this.setMemory(0xED1, tail);
 				this.incPtr(this.memory[0xEA0]);
 				break;
-			case 0xC: // (CX NN)
+			case 0xC: // (CX NN) Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN.
 				this.memory[0xEA0 + (head % 16)] = (Math.floor(Math.random() * 255) + 1) & tail;
 				break;
 			case 0xD: {
-				let xpos = this.memory[0xEA0 + (head % 16)];
-				let ypos = this.memory[0xEA0 + Math.floor(tail / 16)];
-				let height = tail % 16;
-				for (let i = 0; i < height; i++) {
-					let pos = 0xF00 + Math.floor(xpos / 8) + ((ypos + i) * 8);
-					let value = this.memory[(this.memory[0xED2] * 256) + this.memory[0xED3] + i] * 256;
-					value >>>= xpos % 8;
-					this.memory[pos] ^= Math.floor(value / 256);
-					this.memory[pos + 1] ^= value % 256;
-
+					let xpos = this.memory[0xEA0 + (head % 16)];
+					let ypos = this.memory[0xEA0 + Math.floor(tail / 16)];
+					let height = tail % 16;
+					for (let i = 0; i < height; i++) {
+						let pos = 0xF00 + Math.floor(xpos / 8) + ((ypos + i) * 8);
+						let value = this.memory[(this.memory[0xED2] * 256) + this.memory[0xED3] + i] * 256;
+						value >>>= xpos % 8;
+						this.setMemory(pos, this.getMemory(pos) ^ Math.floor(value / 256));
+						this.setMemory(pos + 1, this.getMemory(pos+1) ^ value % 256);
+	
+					}
+	
+					// TODO DXYN IMPLEMENT VF FLAG
+	
+					redraw = true;
+					break;
 				}
-
-				// TODO DXYN IMPLEMENT VF FLAG
-
-				redraw = true;
-				break;
-			}
-			case 0xE:
-				// TODO Skips the next instruction if the key stored in VX is pressed. (Usually the next instruction is a jump to skip a code block)
-				// TODO Skips the next instruction if the key stored in VX isn't pressed. (Usually the next instruction is a jump to skip a code block)
-				break;
 			case 0xF:
 				switch (tail) {
 					case 0x07:
@@ -249,22 +247,16 @@ class chip8 {
 						l += this.memory[0xEA0 + (head % 16)];
 						l %= 0x1000;
 
-						this.memory[0xED0] = l / 256;
-						this.memory[0xED1] = l % 256;
+						this.memory[0xED2] = l / 256;
+						this.memory[0xED3] = l % 256;
+
 						break;
 					}
-
-					case 0x29:
-						// TODO Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font.
-						break;
-					case 0x33:
-						// TODO Stores the binary-coded decimal representation of VX
-						break;
 					case 0x55: {
 						let l = ((this.memory[0xED2] * 256) + this.memory[0xED3]);
 						let vTo = head % 16;
 						for (let i = 0; i <= vTo; i++) {
-							this.memory[l + i] = this.memory[0xEA0 + i];
+							this.setMemory(l + i, this.memory[0xEA0 + i]);
 						}
 
 						break;
@@ -273,7 +265,7 @@ class chip8 {
 						let l = ((this.memory[0xED2] * 256) + this.memory[0xED3]);
 						let vTo = head % 16;
 						for (let i = 0; i <= vTo; i++) {
-							this.memory[0xEA0 + i] = this.memory[l + i];
+							this.memory[0xEA0 + i] = this.getMemory(l + i);
 						}
 
 						break;
@@ -283,16 +275,16 @@ class chip8 {
 
 		}
 
-		if (redraw) {
-			this.renderScreen();
-		}
+		// if (this.attached) {
+		// 	this.callAttached();
+		// }
 
 		this.incPtr(1);
 		return 1;
 	}
 
-	renderScreen() {
-		this.screen(this.memory.slice(-0x100));
+	callAttached() {
+		this.attached(this.memory.slice(-0x100));
 	}
 
 	incPtr(inc) {
@@ -301,10 +293,8 @@ class chip8 {
 		this.memory[0xED1] = addr % 256;
 	}
 
-	attach(type, func) {
-		if (type === "screen") {
-			this.screen = func;
-		}
+	attach(func) {
+		this.attached = func;
 	}
 
 	interupt(type) {
@@ -313,9 +303,23 @@ class chip8 {
 		}
 	}
 
+	setMemory(addr, value){
+		if (addr < 0xF00){
+			return this.memory[addr] = value;
+		} else if (addr >= 0xF00 && addr <= 0xFFF && this.attached){
+			return this.attached.set(addr, value);
+		}
+	}
 
+	getMemory(addr){
+		if (addr < 0xF00){
+			return this.memory[addr];
+		} else if (addr >= 0xF00 && addr <= 0xFFF && this.attached){
+			return this.attached.get(addr);
+		}
+	}
 }
 
-if (module) {
+if (typeof module !== 'undefined') {
 	module.exports = chip8;
 }
