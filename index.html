@@ -10,7 +10,7 @@
 	<script src="chip8.js"></script>
 	<script>
 		let net = {
-			send: "GEE / \r\n",
+			send: "GET / \r\n",
 			sendIndex: 0,
 			received: "",
 			memory: new Uint8Array(0x1000).fill(0),
@@ -43,7 +43,7 @@
 		chip.load16Bit(new Uint16Array([
 			// Lets detect the first bit "GET "
 			0x6101, // Set V1 to 0x01
-			0xAF01, // Set L to F01, the boolean set after reading
+			0xAF01, // Set I to F01, the boolean set after reading
 			0xF155, // Setting boolean 0xF01,OxF02 to V0,V1, 
 			// When 0xF02 is set to 1 it tells the network driver to store the next char in 0xF01
 			// Lets see is it G?
@@ -81,7 +81,7 @@
 
 		// Write 404 error to end of 0x100
 		chip.load16Bit(new Uint16Array([
-			0x6C14, // Set l to 0x14, start of 501 message
+			0x6C14, // Set I to 0x14, start of 501 message
 			0x1600  // Jump to copy from source
 		]), 0x510);
 
@@ -89,13 +89,13 @@
 			0x6100, // Sets V1 to 0
 			0xA000, // Go to 0x000
 			0xFC1E, // Add the value of VF, to the register
-			0xF11E, // Set l forward V1 spaces
-			0xF065, // Copy from current l address to V0
+			0xF11E, // Set I forward V1 spaces
+			0xF065, // Copy from current I address to V0
 			0x4000, // Skip next line if V0 is not equal to 0
 			0x1300, // Jump to sending
-			0xA109, // Set L to 0x109 IE start of new data
-			0xF11E, // Set l forward V1 spaces
-			0xF055, 
+			0xA109, // Set I to 0x109 IE start of new data
+			0xF11E, // Add V1 to I
+			0xF055, // Write
 			0x7101,  // Add 1 to V1
 			0xA000,
 			0x1602, // Go to the 2th instrution
@@ -149,17 +149,17 @@
 		// Send data from response builder at 0x100-0x2FF to Network driver
 		// If there is a blank treat as EOF
 		chip.load16Bit(new Uint16Array([
-			0xA100, // Set l to 0x100, start of http message
+			0xA100, // Set I to 0x100, start of http message
 			0x6100, // Sets V1 to 1
 			0x6200, // Set V2 to 0
-			0xF165, // Copy from current l address to V0
+			0xF165, // Copy from current I address to V0
 			0x4000, // Skip next line if V0 is not equal to 0
 			0x00EE, // Haults program
-			0xAF03, // Set l 0xF03
+			0xAF03, // Set I 0xF03
 			0xF255, // Set 0xF03 to current character and set boolean 0xF04
 			0x7201, // Add 1 to V2
-			0xA100, // Set l back to 0x100, start of http message
-			0xF21E, // Set l forward V2 spaces
+			0xA100, // Set I back to 0x100, start of http message
+			0xF21E, // Set I forward V2 spaces
 			0x1306, // Go to the 4th instrution, copy
 		]), 0x300);
 
