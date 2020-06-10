@@ -70,7 +70,7 @@ class chip8 {
 		//console.log(head, tail, addr);
 		// do render
 		let redraw = false;
-		console.log("Executing 0x" + Number(head).toString(16).padEnd(2, "0") + Number(tail).toString(16).padEnd(2, "0") + " from 0x" + Number(addr).toString(16));
+		console.log("Executing 0x" + Number(head).toString(16).padEnd(2, "0").toUpperCase() + Number(tail).toString(16).padEnd(2, "0").toUpperCase() + " from 0x" + Number(addr).toString(16));
 		if (this.memory[0xED6] === 1) {
 			// Delay Timer
 			if (this.memory[0xED4] > 0) {
@@ -105,6 +105,7 @@ class chip8 {
 				let pos = (head * 256 + tail - 2); // Two is subtracted so that when the CPU steps after this one is on the correct instruction
 				this.setMemory(0xED0, Math.floor(pos / 256) % 16);
 				this.setMemory(0xED1, pos % 256);
+				console.log("Jump")
 				break;
 			}
 			case 0x2: // (2N NN) Calls subroutine at NNN.

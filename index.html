@@ -10,7 +10,7 @@
 	<script src="chip8.js"></script>
 	<script>
 		let net = {
-			send: "GET * \r\n",
+			send: "GEE / \r\n",
 			sendIndex: 0,
 			received: "",
 			memory: new Uint8Array(0x1000).fill(0),
@@ -69,35 +69,37 @@
 			0xF155, // Setting boolean to get next char
 			0xF065, // Copy from 0xF01 to V0
 			0x302F, // Is V0 == Ascii Slash, hex 2F, 
-			0x1550 // If it is not Slash then jump to address 0x400
+			0x1510 // If it is not Slash then jump to address 0x400
 
 		]), 0x200);
 
 		// Write 501 error to end of 0x100
 		chip.load16Bit(new Uint16Array([
-			0xA000, // Set l to 0x000, start of 501 message
-			0xFF65, // Copy from 0x000 to 0x560 to V0-VF
-			0xA109, // Set l to 0x109 aka end of the default http message
-			0xFF55, // Move from V0-VF to 0x109 to 0x119
-			0xA010, // set l to 0x010, to copy last bit of 501
-			0xF365, // Copy it to V0-VF
-			0xA119, // Set l to end of message at 0x119
-			0xF355, // Move from V0-VF
-			0x1300 // Go to response sender at 0x300
+			0x6FC00, // Set Vf to 0x00, start of 501 message
+			0x1600  // Jump to copy from source
 		]), 0x500);
 
 		// Write 404 error to end of 0x100
 		chip.load16Bit(new Uint16Array([
-			0xA01A, // Set l to 0x01A, start of 501 message
-			0xFF65, // Copy from 0x01A to 0x02A to V0-VF
-			0xA109, // Set l to 0x109 aka end of the default http message
-			0xFF55, // Move from V0-VF to 0x109 to 0x119
-			0xA02A, // set l to 0x01A, to copy last bit of 404
-			0xF265, // Copy it to V0-V3
-			0xA119, // Set l to end of message at 0x119
-			0xF255, // Move from V0-V3
-			0x1300 // Go to response sender at 0x300
-		]), 0x550);
+			0x6C14, // Set l to 0x14, start of 501 message
+			0x1600  // Jump to copy from source
+		]), 0x510);
+
+		chip.load16Bit(new Uint16Array([
+			0x6100, // Sets V1 to 0
+			0xA000, // Go to 0x000
+			0xFC1E, // Add the value of VF, to the register
+			0xF11E, // Set l forward V1 spaces
+			0xF065, // Copy from current l address to V0
+			0x4000, // Skip next line if V0 is not equal to 0
+			0x1300, // Jump to sending
+			0xA109, // Set L to 0x109 IE start of new data
+			0xF11E, // Set l forward V1 spaces
+			0xF055, 
+			0x7101,  // Add 1 to V1
+			0xA000,
+			0x1602, // Go to the 2th instrution
+		]), 0x600);
 
 		// Store data for 501 error "501 not implemented", from 0x000 to 0x013
 		chip.load8Bit(new Uint8Array([
@@ -142,7 +144,7 @@
 			117, 
 			110, 
 			100
-		]), 0x01A)
+		]), 0x014)
 
 		// Send data from response builder at 0x100-0x2FF to Network driver
 		// If there is a blank treat as EOF
