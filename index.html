@@ -69,13 +69,14 @@
 			0xF155, // Setting boolean to get next char
 			0xF065, // Copy from 0xF01 to V0
 			0x302F, // Is V0 == Ascii Slash, hex 2F, 
-			0x1510 // If it is not Slash then jump to address 0x400
-
+			0x1510, // If it is not Slash then jump to address 0x400
+			0x6C27, // Set Vf to 0x00, start of 501 message
+			0x1600  // Jump to copy from source
 		]), 0x200);
 
 		// Write 501 error to end of 0x100
 		chip.load16Bit(new Uint16Array([
-			0x6FC00, // Set Vf to 0x00, start of 501 message
+			0x6C00, // Set Vf to 0x00, start of 501 message
 			0x1600  // Jump to copy from source
 		]), 0x500);
 
@@ -145,6 +146,12 @@
 			110, 
 			100
 		]), 0x014)
+
+		//"200 OK
+		//Hello from /"
+		chip.load8Bit(new Uint8Array([
+		50, 48, 48, 32, 79, 75, 10, 72, 101, 108, 108, 111, 32, 102, 114, 111, 109, 32, 47
+		]), 0x027)
 
 		// Send data from response builder at 0x100-0x2FF to Network driver
 		// If there is a blank treat as EOF
