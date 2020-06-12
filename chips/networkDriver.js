@@ -21,6 +21,7 @@ class networkDriver {
                 this.memory[0xF04] = 0;
         } else if (addr == 0xF06) {
             console.log("transmision over");
+            this.memory[0xF06] = 0;
         }
         else {
             //console.log(`NET: SET ${addr.toString(16)} ${value.toString(16)}`)
