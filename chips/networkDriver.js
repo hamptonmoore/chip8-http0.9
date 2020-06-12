@@ -3,11 +3,13 @@ class networkDriver {
     received;
     toSend;
     openSocket;
+    resolve;
     constructor(){
         this.memory = new Uint8Array(0x1000).fill(0)
         this.toSend = "";
         this.received = "";
         this.openSocket = false;
+        this.resolve = function(){}
     }
 
     set(addr, value) {
@@ -21,6 +23,7 @@ class networkDriver {
                 this.memory[0xF04] = 0;
         } else if (addr == 0xF06) {
             this.memory[0xF06] = 0;
+            this.resolve(this.received);
         }
         else {
             //console.log(`NET: SET ${addr.toString(16)} ${value.toString(16)}`)
@@ -39,18 +42,8 @@ class networkDriver {
         this.received = "";
         this.memory[0xF06] = 1;
 
-        let checkSocket = (resolve, reject) => {
-            if (this.memory[0xF06] === 0){
-                resolve(this.received);
-            } else {
-                setTimeout(()=>{
-                    checkSocket(resolve, reject);
-                }, 20);
-            }
-        }
-
-        let response = await new Promise(function(resolve, reject){
-            checkSocket(resolve, reject);
+        let response = await new Promise((resolve, reject)=>{
+            this.resolve = resolve;
         })
 
         return response;
