@@ -7,6 +7,12 @@
 </head>
 
 <body>
+
+	<input id="request" value="GET / \r\n">
+	<button id="submit">Make Request</button>
+
+	<div id="response">Response will go here</div>
+
 	<script src="chip8.js"></script>
 	<script src="./chips/networkDriver.js"></script>
 	<script>
@@ -173,7 +179,11 @@
 		]), 0x100);
 
 		chip.run(0);
-		//console.log(chip.dump());
+		
+
+		document.getElementById("submit").onclick = function(){
+			net.send(document.getElementById("request").value).then(x=>document.getElementById("response").innerHTML = x);
+		}
 	</script>
 </body>
 

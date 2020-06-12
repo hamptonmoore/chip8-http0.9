@@ -20,7 +20,6 @@ class networkDriver {
             this.received += String.fromCharCode(this.memory[0xF03]);
                 this.memory[0xF04] = 0;
         } else if (addr == 0xF06) {
-            console.log("transmision over");
             this.memory[0xF06] = 0;
         }
         else {
@@ -35,10 +34,26 @@ class networkDriver {
         return this.memory[0xF06] == 1;
     }
 
-    send(message){
+    async send(message){
         this.toSend = message;
         this.received = "";
         this.memory[0xF06] = 1;
+
+        let checkSocket = (resolve, reject) => {
+            if (this.memory[0xF06] === 0){
+                resolve(this.received);
+            } else {
+                setTimeout(()=>{
+                    checkSocket(resolve, reject);
+                }, 20);
+            }
+        }
+
+        let response = await new Promise(function(resolve, reject){
+            checkSocket(resolve, reject);
+        })
+
+        return response;
     }
 
     get(addr) {
