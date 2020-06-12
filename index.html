@@ -8,39 +8,20 @@
 
 <body>
 	<script src="chip8.js"></script>
+	<script src="./chips/networkDriver.js"></script>
 	<script>
-		let net = {
-			send: "GET / \r\n",
-			sendIndex: 0,
-			received: "",
-			memory: new Uint8Array(0x1000).fill(0),
-			timeout: false,
-			set: function (addr, value) {
-				if (addr == 0xF02) {
-					console.log(`NET: Chip8 Read Data Flag Set`)
-					this.memory[0xF01] = this.send.charCodeAt(this.sendIndex);
-					this.sendIndex++;
-				} else if (addr == 0xF04) {
-					console.log(`NET: Chip8 Uploaded Data Flag Set`);
-					this.received += String.fromCharCode(this.memory[0xF03]);
-					this.memory[0xF04] = 0;
-				} else {
-					console.log(`NET: SET ${addr.toString(16)} ${value.toString(16)}`)
-					this.memory[addr] = value;
-				}
-
-				return this.memory[addr];
-			},
-			get: function (addr) {
-				return this.memory[addr];
-			}
-		}
-
+		let net = new networkDriver();
+		
 		let chip = new chip8();
 
 		chip.attach(net);
 
 		chip.load16Bit(new Uint16Array([
+			// Lets check to see if the socket is open
+			0xAF06, // Set I to F06, the boolean for socket status
+			0xF065, // Get value of F06 to V0
+			0x3001, // Skip if F06 is 1
+			0x1200, // Go back to start if socket not open
 			// Lets detect the first bit "GET "
 			0x6101, // Set V1 to 0x01
 			0xAF01, // Set I to F01, the boolean set after reading
@@ -161,7 +142,7 @@
 			0x6200, // Set V2 to 0
 			0xF165, // Copy from current I address to V0
 			0x4000, // Skip next line if V0 is not equal to 0
-			0x00EE, // Haults program
+			0x1370, // Jumps to final transmission
 			0xAF03, // Set I 0xF03
 			0xF255, // Set 0xF03 to current character and set boolean 0xF04
 			0x7201, // Add 1 to V2
@@ -169,6 +150,15 @@
 			0xF21E, // Set I forward V2 spaces
 			0x1306, // Go to the 4th instrution, copy
 		]), 0x300);
+
+		// Send data from response builder at 0x100-0x2FF to Network driver
+		// If there is a blank treat as EOF
+		chip.load16Bit(new Uint16Array([
+			0x6001, // Set V1 to 0x01
+			0xAF06, // Set I to F06, the boolean set after reading
+			0xF055, // Setting boolean 0xF06 to true
+			0x00EE, // Haults program
+		]), 0x370);
 
 		// HTTP Response builder
 		chip.load8Bit(new Uint8Array([
