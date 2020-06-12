@@ -11,10 +11,9 @@
 	<script src="./chips/networkDriver.js"></script>
 	<script>
 		let net = new networkDriver();
-		
 		let chip = new chip8();
 
-		chip.attach(net);
+		chip.attach(0xF00, 0XF0A, net);
 
 		chip.load16Bit(new Uint16Array([
 			// Lets check to see if the socket is open

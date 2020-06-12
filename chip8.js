@@ -1,6 +1,7 @@
 class chip8 {
 	memory;
-	attached = false;
+	// Format {min:min, max:max, class: instance}
+	attached = [];
 	forceStopped = false;
 	constructor() {
 		/*
@@ -284,18 +285,14 @@ class chip8 {
 		return 1;
 	}
 
-	callAttached() {
-		this.attached(this.memory.slice(-0x100));
-	}
-
 	incPtr(inc) {
 		let addr = (this.memory[0xED0] * 256) + this.memory[0xED1] + (inc * 2);
 		this.memory[0xED0] = addr / 256;
 		this.memory[0xED1] = addr % 256;
 	}
 
-	attach(func) {
-		this.attached = func;
+	attach(min, max, instance) {
+		this.attached.push({min:min, max:max, class: instance});
 	}
 
 	interupt(type) {
@@ -307,16 +304,28 @@ class chip8 {
 	setMemory(addr, value){
 		if (addr < 0xF00){
 			return this.memory[addr] = value;
-		} else if (addr >= 0xF00 && addr <= 0xFFF && this.attached){
-			return this.attached.set(addr, value);
+		} else if (addr >= 0xF00 && addr <= 0xFFF){
+			for (let device of this.attached){
+				if (addr >= device.min && addr <= device.max){
+					return device.class.set(addr, value);
+				}
+			}
+
+			return this.memory[addr] = value;
 		}
 	}
 
 	getMemory(addr){
 		if (addr < 0xF00){
 			return this.memory[addr];
-		} else if (addr >= 0xF00 && addr <= 0xFFF && this.attached){
-			return this.attached.get(addr);
+		} else if (addr >= 0xF00 && addr <= 0xFFF){
+			for (let device of this.attached){
+				if (addr >= device.min && addr <= device.max){
+					return device.class.get(addr);
+				}
+			}
+
+			return this.memory[addr];
 		}
 	}
 }
