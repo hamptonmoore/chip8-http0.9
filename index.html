@@ -170,6 +170,7 @@
 		
 
 		document.getElementById("submit").onclick = function(){
+			document.getElementById("response").innerHTML = "LOADING..."
 			net.send(eval("'" + document.getElementById("request").value + "'"))
 			.then(x=>document.getElementById("response").innerHTML = x);
 		}
