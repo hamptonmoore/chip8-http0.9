@@ -1,15 +1,41 @@
+import net from "net";
+
 class networkDriver {
     memory;
     received;
     toSend;
     openSocket;
     resolve;
+    tcpSocket;
     constructor(){
         this.memory = new Uint8Array(0x1000).fill(0)
         this.toSend = "";
         this.received = "";
         this.openSocket = false;
         this.resolve = function(){}
+        this.setupTCP(8080, "0.0.0.0")
+    }
+
+    setupTCP(port, host){
+        this.tcpSocket = net.createServer();
+
+        this.tcpSocket.listen(port, host, ()=>{
+            console.log("Started TCP Driver")
+        })
+
+        this.tcpSocket.on('connection', (sock)=> {
+            console.log('CONNECTED: ' + sock.remoteAddress + ':' + sock.remotePort);
+
+            sock.on('data', (data)=> {
+                // console.log(data.toString())
+                this.send(data.toString()).then((res)=>{
+                    console.log(res)
+                    sock.write(res);
+                    sock.destroy()
+                })
+            });
+        });
+
     }
 
     set(addr, value) {
@@ -55,3 +81,5 @@ class networkDriver {
         return this.memory[addr];
     }
 }
+
+export {networkDriver}

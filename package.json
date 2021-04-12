@@ -2,7 +2,8 @@
   "name": "chip8",
   "version": "1.0.0",
   "description": "",
-  "main": "chip8.js",
+  "main": "chip8.mjs",
+  "type": "module",
   "scripts": {
     "test": "mocha"
   },

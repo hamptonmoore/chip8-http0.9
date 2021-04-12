@@ -272,6 +272,10 @@ class chip8 {
 
 						break;
 					}
+					case 0x66: {
+					    console.log(this.memory.slice(0xEA0, 0xEB0))
+						break;
+					}
 				}
 				break;
 
@@ -328,8 +332,23 @@ class chip8 {
 			return this.memory[addr];
 		}
 	}
+
+	exportMemoryUsage(){
+		let memoryUsage = [];
+
+		let start = -1;
+		for (let i = 0; i < this.memory.length; i+=2){
+			if (this.memory[i] == 0 && this.memory[i+1] == 0 && start != -1){
+				memoryUsage.push([start.toString(16), i.toString(16)]);
+				start = -1
+			}
+			if ((this.memory[i] != 0 || this.memory[i] != 0) && start == -1){
+				start = i;
+			}
+		}
+
+		console.log(memoryUsage);
+	}
 }
 
-if (typeof module !== 'undefined') {
-	module.exports = chip8;
-}
+export {chip8}
