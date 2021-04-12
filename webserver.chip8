@@ -24,48 +24,48 @@
 
 
 -200_
-/ Lets check to see if the socket is open
-AF06 / Set I to F06 the boolean for socket status
-F065 / Get value of F06 to V0
-3001 / Skip if F06 is 1
-1200 / Go back to start if socket not open
-/ Lets detect the first bit "GET "
-6101 / Set V1 to 01
-AF01 / Set I to F01 the boolean set after reading
-F155 / Setting boolean F01,OxF02 to V0,V1,
-/ When F02 is set to 1 it tells the network driver to store the next char in F01
-/ Lets see is it G?
-F065 / Copy from F01 to V0
-3047 / Skip next line if V0 == Ascii G hex 47,
-1500 / If it is not G then jump to address 500
-/ Ok lets see if the next is E
-F155 / Setting boolean to get next char
-F065 / Copy from F01 to V0
-3045 / Is V0 == Ascii E hex 45,
-1500 / If it is not E then jump to address 500
-/ Ok lets see if the next is T
-F155 / Setting boolean to get next char
-F065 / Copy from F01 to V0
-3054 / Is V0 == Ascii T hex 54,
-1500 / If it is not T then jump to address 500
-/ Ok lets see if the next is a space
-F155 / Setting boolean to get next char
-F065 / Copy from F01 to V0
-3020 / Is V0 == Ascii Space hex 20,
-1500 / If it is not Space then jump to address 500
-/ Now that we know its a GET request lets see if it is to the only path/
-F155 / Setting boolean to get next char
-F065 / Copy from F01 to V0
-302F / Is V0 == Ascii Slash hex 2F,
-1510 / If it is not Slash then jump to address 400
-6C60 / Set Vf to 60 start of 200 message
-/ Now lets check for a Space
-F155 / Setting boolean to get next char
-F065 / Copy from F01 to V0
-3020 / Is V0 == Ascii Space hex 20,
-1510 / If it is not Space then jump to address 400
-6C60 / Set Vf to 60 start of 200 message
-1600  / Jump to copy from source
+//  Lets check to see if the socket is open
+AF06 //  Set I to F06 the boolean for socket status
+F065 //  Get value of F06 to V0
+3001 //  Skip if F06 is 1
+1200 //  Go back to start if socket not open
+//  Lets detect the first bit "GET "
+6101 //  Set V1 to 01
+AF01 //  Set I to F01 the boolean set after reading
+F155 //  Setting boolean F01,OxF02 to V0,V1,
+//  When F02 is set to 1 it tells the network driver to store the next char in F01
+//  Lets see is it G?
+F065 //  Copy from F01 to V0
+3047 //  Skip next line if V0 == Ascii G hex 47,
+1500 //  If it is not G then jump to address 500
+//  Ok lets see if the next is E
+F155 //  Setting boolean to get next char
+F065 //  Copy from F01 to V0
+3045 //  Is V0 == Ascii E hex 45,
+1500 //  If it is not E then jump to address 500
+//  Ok lets see if the next is T
+F155 //  Setting boolean to get next char
+F065 //  Copy from F01 to V0
+3054 //  Is V0 == Ascii T hex 54,
+1500 //  If it is not T then jump to address 500
+//  Ok lets see if the next is a space
+F155 //  Setting boolean to get next char
+F065 //  Copy from F01 to V0
+3020 //  Is V0 == Ascii Space hex 20,
+1500 //  If it is not Space then jump to address 500
+//  Now that we know its a GET request lets see if it is to the only path/
+F155 //  Setting boolean to get next char
+F065 //  Copy from F01 to V0
+302F //  Is V0 == Ascii Slash hex 2F,
+1510 //  If it is not Slash then jump to address 400
+6C60 //  Set Vf to 60 start of 200 message
+//  Now lets check for a Space
+F155 //  Setting boolean to get next char
+F065 //  Copy from F01 to V0
+3020 //  Is V0 == Ascii Space hex 20,
+1510 //  If it is not Space then jump to address 400
+6C60 //  Set Vf to 60 start of 200 message
+1600  //  Jump to copy from source
 
 
 
