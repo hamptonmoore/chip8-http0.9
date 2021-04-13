@@ -5,7 +5,7 @@ $404NOTFOUND
 DATA "404 file not found\r\n\r\n404 file not found"
 
 $200INDEX
-DATA "200 Ok\r\n\r\nIT WORKS BITCHES"
+DATA "200 Ok\r\n\r\n<style>body{margin:auto;width:fit-content;max-width:400px;}</style><br><h1>Hampton Moore</h1><p>This site is being hosted on an 8bit chip8 virtual machine. Find out more <a href="http://u.nu/7tkv3">here</a></p>"
 
 $DETECTREQ
 // Setup
