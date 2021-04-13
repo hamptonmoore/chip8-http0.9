@@ -8,13 +8,13 @@ if (process.argv[2] == undefined || process.argv[3] == undefined){
 /*
 
 Instructions
-RTS	00EE	0	Return from subroutine
-JUMP    1nnn	1	Jump to address nnn
-CALL	2nnn	1	Call routine at address nnn
+// RTS	00EE	0	Return from subroutine
+// JUMP    1nnn	1	Jump to address nnn
+// CALL	2nnn	1	Call routine at address nnn
 SKE	3snn	2	Skip next instruction if register s equals nn
 SKNE	4snn	2	Do not skip next instruction if register s equals nn
 SKRE	5st0	2	Skip if register s equals register t
-LOAD	6snn	2	Load register s with value nn
+// LOAD	6snn	2	Load register s with value nn
 ADD	7snn	2	Add value nn to register s
 MOVE	8st0	2	Move value from register s to register t
 OR	8st1	2	Perform logical OR on register s and t and store in t
@@ -25,8 +25,8 @@ SUB	8st5	2	Subtract s from t and store in s - register F set on !borrow
 SHR	8st6	2	Shift bits in s 1 bit right, store in t - bit 0 shifts to register F
 SHL	8stE	2	Shift bits in s 1 bit left, store in t - bit 7 shifts to register F
 SKRNE	9st0	2	Skip next instruction if register s not equal register t
-LOADI	Annn	1	Load index with value nnn
-JUMPI	Bnnn	1	Jump to address nnn + index
+// LOADI	Annn	1	Load index with value nnn
+// JUMPI	Bnnn	1	Jump to address nnn + index
 RAND	Ctnn	2	Generate random number between 0 and nn and store in t
 DRAW	Dstn	3	Draw n byte sprite at x location reg s, y location reg t
 SKPR	Es9E	1	Skip next instruction if the key in reg s is pressed
@@ -39,7 +39,7 @@ ADDI	Fs1E	1	Add value in register s to index
 LDSPR	Fs29	1	Load index with sprite from register s
 BCD	Fs33	1	Store the binary coded decimal value of register s at index
 STOR	Fs55	1	Store the values of register s registers at index
-READ	Fs65	1	Read back the stored values at index into registers
+// READ	Fs65	1	Read back the stored values at index into registers
  */
 
 function handleValues(val, labels){
@@ -105,6 +105,14 @@ fs.readFile(process.argv[2], 'utf8', function(err, data){
               break;
           case "READ":
               output = addOutput(output, `F${handleValues(parts[1], labels)}65`);
+              position+=2;
+              break;
+          case "STOR":
+              output = addOutput(output, `F${handleValues(parts[1], labels)}55`);
+              position+=2;
+              break;
+          case "SKE":
+              output = addOutput(output, `3${handleValues(parts[1], labels)}${handleValues(parts[2], labels)}`);
               position+=2;
               break;
           case "DEBUGMEM":

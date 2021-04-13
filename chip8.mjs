@@ -279,7 +279,6 @@ class chip8 {
 						break;
 					}
 					case 0x65: {
-					    console.log("RAN")
 						let l = ((this.memory[0xED2] * 256) + this.memory[0xED3]);
 						let vTo = head % 16;
 						for (let i = 0; i <= vTo; i++) {
