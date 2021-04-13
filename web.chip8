@@ -1,9 +1,42 @@
-// Okay now lets make sure it is a GET request
-$PROCESSREQUEST
+$DETECTREQ
+// Setup
 LOAD 1 0x01
 LOADI 0xF01
+// Detect G
 STOR 1
 READ 0
+SKE 0 "G
+LOAD 0xc 0x00
+SKE 0 "G
+RTS
+// Detect E
+STOR 1
+READ 0
+SKE 0 "E
+LOAD 0xc 0x00
+SKE 0 "E
+RTS
+// Detect T
+STOR 1
+READ 0
+SKE 0 "T
+LOAD 0xc 0x00
+SKE 0 "T
+RTS
+// Detect Space
+STOR 1
+READ 0
+SKE 0 0x20
+LOAD 0xc 0x00
+SKE 0 0x20
+RTS
+LOAD 0xc 0xff
+RTS
+
+// Okay now lets make sure it is a GET request
+$PROCESSREQUEST
+LOAD 0xc 0x00
+CALL $DETECTREQ
 DEBUGMEM
 EXIT
 

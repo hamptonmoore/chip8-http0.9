@@ -9,6 +9,4 @@ Network driver
 0xF06 - Boolean network transmission is over
 
 Chip Itself,
-
-0x100 - 0x1FF: ASCII chars of message
-
+VE stores the response type, 0=404, 1=homepage, 2=other

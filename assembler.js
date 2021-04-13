@@ -74,61 +74,53 @@ fs.readFile(process.argv[2], 'utf8', function(err, data){
       }
       let parts = line.split(/\s+/);
 
+      if (line.trim() == "" || line.startsWith("/")){
+          continue;
+      }
       if (parts[0].startsWith("$")){
           labels[parts[0].slice(1)] = position;
-      }
-
-      switch (parts[0]){
-          case "RTS":
-              output = addOutput(output, `00EE`);
-              position+=2;
-              break;
-          case "JUMP":
-              output = addOutput(output, `1${handleValues(parts[1], labels)}`);
-              position+=2;
-              break;
-          case "CALL":
-              output = addOutput(output, `2${handleValues(parts[1], labels)}`);
-              position+=2;
-              break;
-          case "LOAD":
-              output = addOutput(output, `6${parts[1]}${handleValues(parts[2])}`)
-              position+=2;
-              break;
-          case "LOADI":
-              output = addOutput(output, `A${handleValues(parts[1], labels)}`);
-              position+=2;
-              break;
-          case "JUMPI":
-              output = addOutput(output, `B${handleValues(parts[1], labels)}`);
-              position+=2;
-              break;
-          case "READ":
-              output = addOutput(output, `F${handleValues(parts[1], labels)}65`);
-              position+=2;
-              break;
-          case "STOR":
-              output = addOutput(output, `F${handleValues(parts[1], labels)}55`);
-              position+=2;
-              break;
-          case "SKE":
-              output = addOutput(output, `3${handleValues(parts[1], labels)}${handleValues(parts[2], labels)}`);
-              position+=2;
-              break;
-          case "DEBUGMEM":
-              output = addOutput(output, `F066`);
-              position+=2;
-              break;
-          case "EXIT":
-              output = addOutput(output, `0000`);
-              position += 2;
-              break;
-          case "DATA":
-              let data = handleValues(line.slice(5)) + "00";
-              output = addOutput(output, data);
-              position += (data.length/2);
-              break;
-
+      } else {
+          switch (parts[0]){
+              case "RTS":
+                  output = addOutput(output, `00EE`);
+                  break;
+              case "JUMP":
+                  output = addOutput(output, `1${handleValues(parts[1], labels)}`);
+                  break;
+              case "CALL":
+                  output = addOutput(output, `2${handleValues(parts[1], labels)}`);
+                  break;
+              case "LOAD":
+                  output = addOutput(output, `6${handleValues(parts[1])}${handleValues(parts[2])}`)
+                  break;
+              case "LOADI":
+                  output = addOutput(output, `A${handleValues(parts[1], labels)}`);
+                  break;
+              case "JUMPI":
+                  output = addOutput(output, `B${handleValues(parts[1], labels)}`);
+                  break;
+              case "READ":
+                  output = addOutput(output, `F${handleValues(parts[1], labels)}65`);
+                  break;
+              case "STOR":
+                  output = addOutput(output, `F${handleValues(parts[1], labels)}55`);
+                  break;
+              case "SKE":
+                  output = addOutput(output, `3${handleValues(parts[1], labels)}${handleValues(parts[2], labels)}`);
+                  break;
+              case "DEBUGMEM":
+                  output = addOutput(output, `F066`);
+                  break;
+              case "EXIT":
+                  output = addOutput(output, `0000`);
+                  break;
+              case "DATA":
+                  let data = handleValues(line.slice(5)) + "00";
+                  output = addOutput(output, data);
+                  position += (data.length/2) -2;
+                  break;
+          }
+          position += 2;
       }
   }
 
