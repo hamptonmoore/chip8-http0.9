@@ -20,7 +20,7 @@ class chip8 {
 		*/
 		this.memory = new Uint8Array(0x1000).fill(0);
 		// Execution starts in memory position 0x200
-		this.memory[0xED0] = 0x02;
+		this.memory[0xED0] = 0x00;
 	}
 
 	load8Bit(memory, starting) {
@@ -68,7 +68,7 @@ class chip8 {
 		let head = this.getMemory(addr);
 		let tail = this.getMemory(addr + 1);
 
-		//console.log(head, tail, addr);
+		console.log(`${head.toString(16).padStart(2, "0")}${tail.toString(16).padStart(2, "0")} @ 0x${addr.toString(16)}`);
 		// do render
 		let redraw = false;
 		//console.log("Executing 0x" + Number(head).toString(16).padEnd(2, "0").toUpperCase() + Number(tail).toString(16).padEnd(2, "0").toUpperCase() + " from 0x" + Number(addr).toString(16));
@@ -95,11 +95,19 @@ class chip8 {
 						break;
 					case 0xEE: // (00 EE) Returns from a subroutine.
 						// TODO subroutine exiting
-						this.setMemory(0xED7, 1);
-						return -1;
+                        let depth = this.memory[0xECF]-1;
+                        if (depth == -1) {
+							this.setMemory(0xED7, 1);
+						} else {
+                        	this.setMemory(0xED0, this.memory[0xEB0 + (depth*2)]);
+							this.setMemory(0xED1, this.memory[0xEB0 + 1 + (depth*2)]);
+							this.setMemory(0xECF, depth);
+						}
+                        break;
 					case 0x00:
 						this.setMemory(0xED7, 1);
 						return -1;
+						break;
 				}
 				break;
 			case 0x1: {// (1N NN) Jumps to address NNN.
@@ -111,6 +119,13 @@ class chip8 {
 			}
 			case 0x2: // (2N NN) Calls subroutine at NNN.
 				// TODO program subroutine
+				let depth = this.memory[0xECF];
+				this.setMemory(0xEB0 + (depth*2), this.memory[0xED0]);
+				this.setMemory(0xEB0 + 1 + (depth*2), this.memory[0xED1]);
+				this.setMemory(0xECF, depth+1);
+				let pos = (head * 256 + tail - 2); // Two is subtracted so that when the CPU steps after this one is on the correct instruction
+				this.setMemory(0xED0, Math.floor(pos / 256) % 16);
+				this.setMemory(0xED1, pos % 256);
 				break;
 			case 0x3: // (3X NN) Skips the next instruction if VX equals NN. (Usually the next instruction is a jump to skip a code block)
 				if (this.getMemory(0xEA0 + (head % 16)) === tail) {
@@ -264,6 +279,7 @@ class chip8 {
 						break;
 					}
 					case 0x65: {
+					    console.log("RAN")
 						let l = ((this.memory[0xED2] * 256) + this.memory[0xED3]);
 						let vTo = head % 16;
 						for (let i = 0; i <= vTo; i++) {
@@ -273,7 +289,7 @@ class chip8 {
 						break;
 					}
 					case 0x66: {
-					    console.log(this.memory.slice(0xEA0, 0xEB0))
+					    console.log(this.memory.slice(0xEA0, 0xED7))
 						break;
 					}
 				}
@@ -339,7 +355,7 @@ class chip8 {
 		let start = -1;
 		for (let i = 0; i < this.memory.length; i+=2){
 			if (this.memory[i] == 0 && this.memory[i+1] == 0 && start != -1){
-				memoryUsage.push([start.toString(16), i.toString(16)]);
+				memoryUsage.push([start.toString(16), (i-1).toString(16)]);
 				start = -1
 			}
 			if ((this.memory[i] != 0 || this.memory[i] != 0) && start == -1){

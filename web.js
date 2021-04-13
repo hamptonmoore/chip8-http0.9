@@ -6,8 +6,9 @@ let net = new networkDriver();
 let chip = new chip8();
 
 chip.attach(0xF00, 0XF0A, net);
+console.log(process.argv);
 
-fs.readFile('webserver.chip8', 'utf8', function(err, data){
+fs.readFile(process.argv[2] || 'webserver.asm', 'utf8', function(err, data){
     let lines = data.split("\n");
     let re = /^[0-9a-fA-F]$/;
 
@@ -33,5 +34,5 @@ fs.readFile('webserver.chip8', 'utf8', function(err, data){
     }
 
     chip.run(0);
-    chip.exportMemoryUsage();
+    chip.exportMemoryUsage()
 });

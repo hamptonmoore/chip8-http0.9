@@ -1,4 +1,8 @@
 -000_
+// Jump to 0x200 start of code
+1200
+
+-080_
 // Store data for 501 error "501 not implemented" from 000 to 013
 35 30 31 20 6e 6f 74 20 69 6d 70 6c 65 6d 65 6e 74 65 64
 
