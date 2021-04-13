@@ -5,7 +5,10 @@ $404NOTFOUND
 DATA "404 file not found\r\n\r\n404 file not found"
 
 $200INDEX
-DATA "200 Ok\r\n\r\n<style>body{margin:auto;width:fit-content;max-width:400px;}</style><br><h1>Hampton Moore</h1><p>This site is being hosted on an 8bit chip8 virtual machine. Find out more <a href="http://u.nu/7tkv3">here</a></p>"
+DATA "200 Ok\r\nContent-type: text/html\r\n\r\n<title>~hammy</title><meta content="Personal website"name=description><meta content="width=device-width,initial-scale=1"name=viewport><style>body{background-color:#d3d3d3;font-family:sans-serif;margin:16px}header,main{padding:16px;padding-top:4px;padding-bottom:32px;margin:auto;left:0;right:0;max-width:568px;background-color:#fff;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAAaCAYAAABByvnlAAAABHNCSVQICAgIfAhkiAAAAg1JREFUaEPtmk1SwzAMhZMdt2LHX0/QFRwNVj1BoLDjVuwCzUSpYmTrybU86Yy76rSqLenzk+RM+87p9XS/Hy1Lv38eeot9adut+OuWhK0EiILbir/ZQNAAhuMrlJPdw8tkV1spFIfVTy2o3DgakLm0Xi2Q5UTd3iyHZPf9M73XgiIVpOxqKQVRBuLvKe7FTsiJVSlmhTQg/4tVA6IVcOD7q1CI1qgHQZI8dq1kAXk6l0GnJo+AsPjJS9YqF0quuC0va0vJ0mBMPaIBEVlRycoFwqfLXuoJyAmhRo40c2S90MaruXsohHznYPjhReKnfDYgSLZAmwYETBQ327xCyFneQxC5eZcsnsRLy5cnBMnPsN/Gzg3PITX21T3E0k8akPh9xApEnLIkWaMVwTruSlMJMj5blaIpI9eP6ImfR3U0b9ItXrypIyNwuKkFSm4itgxEi0mC5ArEMv5qzsfgbhWIFk9MMTAQVHLSQID81qKmWNOkz8OgJHWX3C8Vn/VBorSW+eFiyiG01OUmCJm8tL6BHBjpoucNgtavBqQEhNpANHXGVGqBHto2IGD2Un2iRKlyUQg6OpdQS6zB1ypZJSHwvBVVSAMCyi1h5gYk3PPxbj/2824lFHJuvM+rrYbj2+VZmVcgFY5/f2j6+KrzN6VqQE4xpqawXEhhbS+1DqfqVZ7cx17taDYgWoa67hcVEa/leAjb1wAAAABJRU5ErkJggg==);background-repeat:repeat-x;background-position:center bottom;image-rendering:pixelated;image-rendering:-moz-crisp-edges;image-rendering:crisp-edges}main{position:relative}nav a{margin:8px;padding:4px 12px;background-color:#888;color:#fff;text-decoration:none;display:inline-block}nav>a:hover{background-color:#999}header{margin-bottom:12px}</style><main><h1>~hammy</h1><p>I make some things here I guess<ul><li><a href=./packages/?hammy target=_blank>pm package viewer</a><ul><li><a href=./packages/?hammy target=_blank>just my packages</a></ul><li><a href=./online+/ target=_blank>online viewer</a><li><a href=./source/ target=_blank>/pub/ source code viewer</a><ul><li><a href=./source/?/pub/hammy/http/source/index.py target=_blank>source "quine"</a></ul><li><a href=./owo/ target=_blank>owo :3 bbs</a></ul></main>"
+
+$200STYLES
+DATA "200 Ok\r\n\r\nbody{background:#ddd;margin:auto;width:fit-content;max-width:400px;font-family:sans-serif;padding:10px;}main{background:#fff;padding:16px;}"
 
 $DETECTREQ
 // Setup
@@ -49,6 +52,10 @@ RTS
 // Detect Space
 STOR 1
 READ 0
+SKNE 0 "s"
+LOAD 0xc 0x02
+SKNE 0 "s"
+RTS
 SKE 0 " "
 LOAD 0xc 0x00
 SKE 0 " "
@@ -60,7 +67,24 @@ $ENDSENDSTRING
 LOAD 0xa 0x01
 RTS
 
+$LOAD9SUB
+ADDI 0x0
+ADD 0x1 0x01
+RTS
+
+$LOAD9
+SKRE 0x9 0x1
+CALL $LOAD9SUB
+SKRE 0x9 0x1
+JUMP $LOAD9
+RTS
+
 $SENDSTRING
+LOAD 0x1 0x00
+LOAD 0 0x00
+LOAD 0 0xff
+CALL $LOAD9
+LOAD 0 0x00
 ADDI 0xb
 LOAD 0x1 0x01
 READ 0
@@ -68,6 +92,8 @@ SKNE 0x0 0x00
 JUMP $ENDSENDSTRING
 LOADI 0xF03
 STOR 1
+SKNE 0xb 0xff
+ADD 0x9 0x01
 ADD 0xb 0x01
 RTS
 
@@ -83,6 +109,13 @@ LOADI $200INDEX
 CALL $SENDSTRING
 SKE 0xa 0x01
 JUMP $SEND200INDEX
+RTS
+
+$SEND200STYLES
+LOADI $200STYLES
+CALL $SENDSTRING
+SKE 0xa 0x01
+JUMP $SEND200STYLES
 RTS
 
 $SEND404NOTFOUND
@@ -115,13 +148,17 @@ LOAD 0xc 0x00
 CALL $DETECTREQ
 CALL $WAITFOREND
 LOAD 0xb 0x00
+LOAD 0x9 0x00
 LOAD 0xa 0x00
 CALL $SENDHTTPHEADER
 LOAD 0xb 0x00
 LOAD 0xa 0x00
-SKE 0xc 0x00
+LOAD 0x9 0x00
+SKNE 0xc 0x01
 CALL $SEND200INDEX
-SKE 0xc 0x01
+SKNE 0xc 0x02
+CALL $SEND200STYLES
+SKNE 0xc 0x00
 CALL $SEND404NOTFOUND
 LOADI 0xF06
 STOR 0

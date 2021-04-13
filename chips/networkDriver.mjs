@@ -29,7 +29,7 @@ class networkDriver {
             sock.on('data', (data)=> {
                 // console.log(data.toString())
                 this.send(data.toString()).then((res)=>{
-                    console.log(res)
+                    // console.log(res)
                     sock.write(res);
                     sock.destroy()
                 })

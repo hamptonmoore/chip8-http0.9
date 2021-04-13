@@ -11,11 +11,11 @@ Instructions
 // RTS	00EE	0	Return from subroutine
 // JUMP    1nnn	1	Jump to address nnn
 // CALL	2nnn	1	Call routine at address nnn
-SKE	3snn	2	Skip next instruction if register s equals nn
-SKNE	4snn	2	Do not skip next instruction if register s equals nn
-SKRE	5st0	2	Skip if register s equals register t
+// SKE	3snn	2	Skip next instruction if register s equals nn
+// SKNE	4snn	2	Do not skip next instruction if register s equals nn
+// SKRE	5st0	2	Skip if register s equals register t
 // LOAD	6snn	2	Load register s with value nn
-ADD	7snn	2	Add value nn to register s
+// ADD	7snn	2	Add value nn to register s
 MOVE	8st0	2	Move value from register s to register t
 OR	8st1	2	Perform logical OR on register s and t and store in t
 AND	8st2	2	Perform logical AND on register s and t and store in t
@@ -115,7 +115,7 @@ fs.readFile(process.argv[2], 'utf8', function(err, data){
                   output = addOutput(output, `4${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}`);
                   break;
               case "SKRE":
-                  output = addOutput(output, `5${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}`);
+                  output = addOutput(output, `5${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}0`);
                   break;
               case "ADD":
                   output = addOutput(output, `7${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}`);

@@ -51,7 +51,7 @@ class chip8 {
 	// This count makes it so the event loop is never hogged up, but it also is not slowed down by constantly calling setTImeout0
 	run = (count) => {
 		if (this.step() !== -1) {
-			if (count > 16) {
+			if (count > 2048) {
 				setTimeout(() => {
 					this.run(0);
 				}, 0);
@@ -68,7 +68,7 @@ class chip8 {
 		let head = this.getMemory(addr);
 		let tail = this.getMemory(addr + 1);
 
-		console.log(`${head.toString(16).padStart(2, "0")}${tail.toString(16).padStart(2, "0")} @ 0x${addr.toString(16)}`);
+		// console.log(`${head.toString(16).padStart(2, "0")}${tail.toString(16).padStart(2, "0")} @ 0x${addr.toString(16)}`);
 		// do render
 		let redraw = false;
 		//console.log("Executing 0x" + Number(head).toString(16).padEnd(2, "0").toUpperCase() + Number(tail).toString(16).padEnd(2, "0").toUpperCase() + " from 0x" + Number(addr).toString(16));
