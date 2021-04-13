@@ -38,17 +38,17 @@ LOADS	Fs18	1	Load sound timer with value in register s
 ADDI	Fs1E	1	Add value in register s to index
 LDSPR	Fs29	1	Load index with sprite from register s
 BCD	Fs33	1	Store the binary coded decimal value of register s at index
-STOR	Fs55	1	Store the values of register s registers at index
+// STOR	Fs55	1	Store the values of register s registers at index
 // READ	Fs65	1	Read back the stored values at index into registers
  */
 
-function handleValues(val, labels){
+function handleValues(val, labels, padding){
     if (val.startsWith("0x")){
         return val.slice(2);
     } else if (val.startsWith("$")){
         return labels[val.slice(1)].toString(16).padStart(3, "0");
     } else if (val.startsWith('"')){
-        return eval(`'${val.slice(1)}'`).split("")
+        return eval(`'${val.slice(1, -1)}'`).split("")
             .map(c => c.charCodeAt(0).toString(16).padStart(2, "0"))
             .join("");
     }
@@ -105,8 +105,20 @@ fs.readFile(process.argv[2], 'utf8', function(err, data){
               case "STOR":
                   output = addOutput(output, `F${handleValues(parts[1], labels)}55`);
                   break;
+              case "ADDI":
+                  output = addOutput(output, `F${handleValues(parts[1], labels)}1E`);
+                  break;
               case "SKE":
-                  output = addOutput(output, `3${handleValues(parts[1], labels)}${handleValues(parts[2], labels)}`);
+                  output = addOutput(output, `3${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}`);
+                  break;
+              case "SKNE":
+                  output = addOutput(output, `4${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}`);
+                  break;
+              case "SKRE":
+                  output = addOutput(output, `5${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}`);
+                  break;
+              case "ADD":
+                  output = addOutput(output, `7${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}`);
                   break;
               case "DEBUGMEM":
                   output = addOutput(output, `F066`);

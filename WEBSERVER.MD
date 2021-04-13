@@ -9,4 +9,4 @@ Network driver
 0xF06 - Boolean network transmission is over
 
 Chip Itself,
-VE stores the response type, 0=404, 1=homepage, 2=other
+VC stores the response type, 0=404, 1=homepage, 2=other
