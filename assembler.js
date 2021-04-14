@@ -16,7 +16,7 @@ Instructions
 // SKRE	5st0	2	Skip if register s equals register t
 // LOAD	6snn	2	Load register s with value nn
 // ADD	7snn	2	Add value nn to register s
-MOVE	8st0	2	Move value from register s to register t
+// MOVE	8st0	2	Move value from register s to register t
 OR	8st1	2	Perform logical OR on register s and t and store in t
 AND	8st2	2	Perform logical AND on register s and t and store in t
 XOR	8st3	2	Perform logical XOR on register s and t and store in t
@@ -116,6 +116,9 @@ fs.readFile(process.argv[2], 'utf8', function(err, data){
                   break;
               case "SKRE":
                   output = addOutput(output, `5${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}0`);
+                  break;
+              case "MOVE":
+                  output = addOutput(output, `8${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}0`);
                   break;
               case "ADD":
                   output = addOutput(output, `7${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}`);
