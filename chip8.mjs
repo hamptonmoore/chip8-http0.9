@@ -253,6 +253,14 @@ class chip8 {
 					case 0x18:
 						this.memory[0xED5] = this.memory[0xEA0 + (head % 16)];
 						break;
+					case 0x33:
+						console.log("RAN BCD");
+						let l = ((this.memory[0xED2] * 256) + this.memory[0xED3]);
+						let vals = this.memory[0xEA0+ (head) % 16].toString().padStart(3, "0").split("").map((c)=>c.charCodeAt(0)-48)
+                        this.memory[l] = vals[0];
+						this.memory[l+1] = vals[1];
+						this.memory[l+2] = vals[2];
+						break;
 					case 0x1E: {
 						let l = ((this.memory[0xED2] * 256) + this.memory[0xED3]);
 						if (l + this.memory[0xEA0 + (head % 16)] > 0xFFF) {

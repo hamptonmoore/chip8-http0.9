@@ -108,6 +108,9 @@ fs.readFile(process.argv[2], 'utf8', function(err, data){
               case "ADDI":
                   output = addOutput(output, `F${handleValues(parts[1], labels)}1E`);
                   break;
+              case "BCD":
+                  output = addOutput(output, `F${handleValues(parts[1], labels)}33`);
+                  break;
               case "SKE":
                   output = addOutput(output, `3${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}`);
                   break;

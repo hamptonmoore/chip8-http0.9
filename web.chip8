@@ -5,7 +5,7 @@ $404NOTFOUND
 DATA "404 file not found\r\n\r\n404 file not found"
 
 $200VIEWER
-DATA "200 Ok\r\nContent-type: text/html\r\n\r\n<style>* {margin:0px;padding:0px;}</style>you are viewer "
+DATA "200 Ok\r\nContent-type: text/html\r\n\r\n<style>* {margin:0px;padding:0px;font-family:monospace;}</style>you are viewer "
 
 $200INDEX
 DATA "200 Ok\r\nContent-type: text/html;charset=UTF-8;\r\n\r\n<link href=style.css rel=stylesheet><meta content="width=device-width,initial-scale=1"name=viewport><title>hammy\'s 8-bit website</title><div id=c><header><h1>hammy\'s 8-bit website</h1></header><main><h3>Hello!</h3><p>Welcome to my 8-bit hosted website! This website is hosted on an Virtual Machine (VM) written by ~hammy for the <a href=//u.nu/quq22>chip-8 cpu architecture</a>. Below is a write-up of each important tool I wrote to make this website possible.<h3>Virtual Machine</h3><p>The webserver (more deatils later) that runs this website is written in Chip-8 bytecode. To run this a virtual machine was needed, they emulate a real CPU but in software. For this I wrote a Chip-8 Virtual Machine from scratch, it has 4 kilobytes of memory and supports most of the 35 instructions for normal Chip-8 VMs, but without the graphics instructions due to this VM being for general computation. Instead the 0xF00-0xFFF address space was made to be attachable to "chips". The VM running this site has a custom network card chip attached in the address space 0xF00 - 0xF10. This network card gives the VM the ability to listen for and respond to TCP requests which was required for this site.<h3>Assembler</h3><p>Version one of this webserver was written in pure chip-8 bytecode. It proved to be quite a pain and after writing a couple hundreds line of it, I had a barely working webserver with lots of issues, including a massive design flaw. Realizing I would have to write it all again I decide to first create a assembler. This meant instead of writing pure bytecode which looked like<pre>A100 6100 6200 F065 400 1400 AF03 F155 7201 A100 F21E 1356</pre>I could instead write code that looked like this<pre>ADDI 0xb\nLOAD 0x1 0x01\nREAD 0\nSKNE 0x0 0x00\nJUMP $ENDSENDSTRING\nLOADI 0xF03\nSTOR 1</pre>This made it must faster to write the second version and due to having labels makes the code much more modular instead of hard coding in the addresses of functions.<h3>All included</h3><p>If you look into the source of the page you will first see rather messy HTML, this is due to it being heavily minified causing the HTML to look rather odd. Next you will notice no external resources are used! The CSS file is locally hosted with it being stored in the 4 kilobytes of system memory.<p><iframe height=18 scrolling=no src=/v style="background-color:transparent;border:0 none transparent;padding:0;overflow:hidden;float:right"width=150></iframe><p>Created with <span style=color:red>&lt;3 </span>by <a href=//hamptonmoore.com target=_blank>~hammy</a></main></div>"
@@ -126,9 +126,21 @@ CALL $SENDSTRING
 SKE 0xa 0x01
 JUMP $SEND200VIEWER
 ADD 0x8 0x01
-MOVE 0x8 0x0
-ADD 0x0 "a"
+LOADI 0xEA2
+BCD 0x8
 LOAD 0x1 0x01
+READ 0
+ADD 0x0 48
+LOADI 0xF03
+STOR 1
+LOADI 0xEA3
+READ 0
+ADD 0x0 48
+LOADI 0xF03
+STOR 1
+LOADI 0xEA4
+READ 0
+ADD 0x0 48
 LOADI 0xF03
 STOR 1
 RTS
