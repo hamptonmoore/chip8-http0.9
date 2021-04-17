@@ -1,19 +1,20 @@
 -- Global --
+0xD - View Counter
+
+-- Request -- Collison Global
 0xC - Page to load
 	- 0x00, 404
 	- 0x01, index /
 	- 0x02, stylesheet /s
 	- 0x03, viewer /v
 
-0xD - View Counter
-
--- Sending --
-0x2 - Read offset lower
-0x3 - Read offset upper
+-- Sending -- Collision Request
+0x3 - Read offset lower
+0x2 - Read offset upper
 0x4 - Finished sending Boolean
-TLDR - Jump to $START then move forwards ($LOAD9) by (0x3 * 0xff) + 0x2, next read the byte, check if it's null, if so 0x4 = 0x01
+TLDR - Jump to $START then move forwards ($LOAD9) by (0x2 * 0xff) + 0x3, next read the byte, check if it's null, if so 0x4 = 0x01
 
--- View Router --
+-- View Route -- Collision Request
 0x2 - BCD first
 0x3 - BCD second
 0x4 - BCD third
