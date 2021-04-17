@@ -8,7 +8,7 @@ $200VIEWER
 DATA "200 Ok\r\nContent-type: text/html\r\n\r\n<style>*{margin:0px;padding:0px;font-family:monospace}</style>you are viewer "
 
 $200INDEX
-DATA "200 Ok\r\nContent-type: text/html\r\n\r\n<link href=style.css rel=stylesheet><meta content="width=device-width,initial-scale=1"name=viewport><title>hammy\'s 8-bit website</title><div id=c><header><h1>hammy\'s 8-bit website</h1></header><main><h3>Hello!</h3><p>Welcome to my 8-bit hosted website! This website is hosted on an Virtual Machine (VM) written by ~hammy for the <a href=//u.nu/quq22>chip-8 cpu architecture</a>. Below is a write-up of each important tool I wrote to make this website possible.<h3>Virtual Machine</h3><p>The webserver (more details later) that runs this website is written in Chip-8 bytecode. To run this a virtual machine was needed, it emulates a real CPU but in software. For this I wrote a Chip-8 Virtual Machine from scratch, it has 4 kilobytes of memory and supports most of the 35 instructions for normal Chip-8 VMs, but without the graphics instructions due to this VM being for general computation. Instead the 0xF00-0xFFF address space was made to be attachable to "chips". The VM running this site has a custom network card chip attached in the address space 0xF00 - 0xF10. This network card gives the VM the ability to listen for and respond to TCP requests which was required for this site.<h3>Assembler</h3><p>Version one of this webserver was written in pure chip-8 bytecode. It proved to be quite a pain and after writing a couple hundreds line of it, I had a barely working webserver with lots of issues, including a massive design flaw. Realizing I would have to write it all again I decide to first create a assembler, so that instead of writing pure bytecode looking like<pre>A100 6100 6200 F065 400 1400 AF03 F155 7201 A100 F21E 1356</pre>I could instead write nicer code like <pre>ADDI 0xa\nLOAD 0x1 0x01\nREAD 0\nSKNE 0x0 0x00\nJUMP $END\nLOADI 0xF03\nSTOR 1</pre>This made writing the second version much faster, namely due to having labels for blocks of code<h3>All included</h3><p>If you look into the source of the page you will first see rather messy HTML, this is due to it being heavily minified causing the HTML to look rather odd. Next you will notice no external resources are used, with all the CSS file also being hosted here. In addition to that, there is a dynamically rendered view counter visible below.<p><iframe height=18 scrolling=no src=/v style="background-color:transparent;border:0 none transparent;padding:0;float:right"width=150></iframe><p>Created with <span style=color:red>&lt;3 </span>by <a href=//hamptonmoore.com target=_blank>~hammy</a>"
+DATA "200 Ok\r\nContent-type: text/html\r\n\r\n<link href=style.css rel=stylesheet><meta content="width=device-width,initial-scale=1"name=viewport><title>hammy\'s 8-bit website</title><div id=c><header><h1>hammy\'s 8-bit website</h1></header><main><h3>Hello!</h3><p>Welcome to my 8-bit hosted website! This website is hosted on an Virtual Machine (VM) written by ~hammy for the <a href=//u.nu/quq22>chip-8 cpu architecture</a>. Below is a write-up of each important tool I wrote to make this website possible.<h3>Virtual Machine</h3><p>The webserver (more details later) that runs this website is written in Chip-8 bytecode. To run this a virtual machine was needed, it emulates a real CPU but in software. For this I wrote a Chip-8 Virtual Machine from scratch, it has 4 kilobytes of memory and supports most of the 35 instructions for normal Chip-8 VMs, but without the graphics instructions due to this VM being for general computation. Instead the 0xF00-0xFFF address space was made to be attachable to "chips". The VM running this site has a custom network card chip attached in the address space 0xF00 - 0xF10. This network card gives the VM the ability to listen for and respond to TCP requests which was required for this site.<h3>Assembler</h3><p>Version one of this webserver was written in pure chip-8 bytecode. It proved to be quite a pain and after writing a couple hundreds line of it, I had a barely working webserver with lots of issues, including a massive design flaw. Realizing I would have to write it all again I decide to first create a assembler, so that instead of writing pure bytecode looking like<pre>A100 6100 6200 F065 400 1400 AF03 F155 7201 A100 F21E 1356</pre>I could instead write nicer code like <pre>ADDI 0x3\nLOAD 0x1 0x01\nREAD 0\nSKNE 0x0 0x00\nJUMP $END\nLOADI 0xF03\nSTOR 1</pre>This made writing the second version much faster, namely due to having labels for blocks of code<h3>All included</h3><p>If you look into the source of the page you will first see rather messy HTML, this is due to it being heavily minified causing the HTML to look rather odd. Next you will notice no external resources are used, with all the CSS file also being hosted here. In addition to that, there is a dynamically rendered view counter visible below.<p><iframe height=18 scrolling=no src=/v style="background-color:transparent;border:0 none transparent;padding:0;float:right"width=150></iframe><p>Created with <span style=color:red>&lt;3 </span>by <a href=//hamptonmoore.com target=_blank>~hammy</a>"
 
 $200STYLES
 DATA "200 Ok\r\n\r\nbody{background-color:#EBEDF4;font-family:monospace}#c{margin:auto;max-width:600px;box-shadow:16px 16px #202949;margin-bottom:4em;margin-top:2em}header{background-color:#405392;padding:16px;color:#fafafa}main{padding:16px;background-color:#fafafa}pre{background-color:#202949;color:#fafafa;padding:1px}"
@@ -80,9 +80,9 @@ ADD 0x1 0x01
 RTS
 
 $LOAD9
-SKRE 0x9 0x1
+SKRE 0x2 0x1
 CALL $LOAD9SUB
-SKRE 0x9 0x1
+SKRE 0x2 0x1
 JUMP $LOAD9
 RTS
 
@@ -92,18 +92,18 @@ LOAD 0 0x00
 LOAD 0 0xff
 CALL $LOAD9
 LOAD 0 0x00
-ADDI 0xa
+ADDI 0x3
 LOAD 0x1 0x01
 READ 0
 SKNE 0x0 0x00
 JUMP $ENDSENDSTRING
 LOADI 0xF03
 STOR 1
-SKNE 0xa 0xff
-ADD 0x9 0x01
-SKNE 0xa 0xff
-ADD 0xa 0x01
-ADD 0xa 0x01
+SKNE 0x3 0xff
+ADD 0x2 0x01
+SKNE 0x3 0xff
+ADD 0x3 0x01
+ADD 0x3 0x01
 RTS
 
 $SENDHTTPHEADER
@@ -181,13 +181,13 @@ $PROCESSREQUEST
 LOAD 0xc 0x00
 CALL $DETECTREQ
 CALL $WAITFOREND
-LOAD 0xa 0x00
-LOAD 0x9 0x00
+LOAD 0x3 0x00
+LOAD 0x2 0x00
 LOAD 0xb 0x00
 CALL $SENDHTTPHEADER
-LOAD 0xa 0x00
+LOAD 0x3 0x00
 LOAD 0xb 0x00
-LOAD 0x9 0x00
+LOAD 0x2 0x00
 SKNE 0xc 0x01
 CALL $SEND200INDEX
 SKNE 0xc 0x02

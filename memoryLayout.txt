@@ -9,6 +9,10 @@
 
 -- Sending --
 0xb - Finished sending Boolean
-0xa - Read offset lower
-0x9 - Read offset upper
+0x2 - Read offset lower
+0x3 - Read offset upper
 
+-- Viewer --
+0x2 - BCD first
+0x3 - BCD second
+0x4 - BCD third
