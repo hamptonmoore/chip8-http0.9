@@ -51,10 +51,10 @@ class chip8 {
 	// This count makes it so the event loop is never hogged up, but it also is not slowed down by constantly calling setTImeout0
 	run = (count) => {
 		if (this.step() !== -1) {
-			if (count > 2048) {
-				setTimeout(() => {
+			if (count > 10000) {
+				setImmediate(() => {
 					this.run(0);
-				}, 0);
+				});
 			} else {
 				this.run(count + 1)
 			}
@@ -254,7 +254,6 @@ class chip8 {
 						this.memory[0xED5] = this.memory[0xEA0 + (head % 16)];
 						break;
 					case 0x33:
-						console.log("RAN BCD");
 						let l = ((this.memory[0xED2] * 256) + this.memory[0xED3]);
 						let vals = this.memory[0xEA0+ (head) % 16].toString().padStart(3, "0").split("").map((c)=>c.charCodeAt(0)-48)
                         this.memory[l] = vals[0];
