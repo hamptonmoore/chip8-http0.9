@@ -8,9 +8,9 @@
 0xd - View Counter
 
 -- Sending --
-0xb - Finished sending Boolean
 0x2 - Read offset lower
 0x3 - Read offset upper
+0x4 - Finished sending Boolean
 
 -- Viewer --
 0x2 - BCD first
