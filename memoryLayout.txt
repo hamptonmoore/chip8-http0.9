@@ -5,10 +5,10 @@
 	- 0x02, stylesheet
 	- 0x03, viewer
 
-0x8 - View Counter
+0xd - View Counter
 
 -- Sending --
-0xa - Finished sending Boolean
-0xb - Read offset lower
+0xb - Finished sending Boolean
+0xa - Read offset lower
 0x9 - Read offset upper
 
