@@ -4,12 +4,14 @@ class networkDriver {
     memory;
     received;
     toSend;
+	queue;
     openSocket;
     resolve;
     tcpSocket;
     constructor(){
         this.memory = new Uint8Array(0x1000).fill(0)
-        this.toSend = "";
+        this.toSend = false;
+		this.queue = [];
         this.received = "";
         this.openSocket = false;
         this.resolve = function(){}
@@ -51,9 +53,10 @@ class networkDriver {
             this.received += String.fromCharCode(this.memory[0xF03]);
             this.memory[0xF04] = 0;
         } else if (addr == 0xF06) {
-            // console.log("TRANSMISSION CLOSED");
             this.memory[0xF06] = 0;
             this.resolve(this.received);
+			this.toSend = false;
+			this.loadNextQueueItem()
         }
         else {
             // console.log(`NET: SET ${addr.toString(16)} ${value.toString(16)}`)
@@ -68,16 +71,30 @@ class networkDriver {
     }
 
     async send(message){
-        this.toSend = message;
-        this.received = "";
-        this.memory[0xF06] = 1;
-
+		let item = {}
+        item.toSend = message;
+        item.received = "";
+		this.queue.push(item)
         let response = await new Promise((resolve, reject)=>{
-            this.resolve = resolve;
+            this.queue[this.queue.length-1].resolve = resolve;
+		    this.loadNextQueueItem()
         })
-
+		
         return response;
     }
+
+	loadNextQueueItem(){
+		if (this.toSend !== false){
+			return;
+		}
+		if (this.queue.length > 0){
+			let item = this.queue.shift();	
+			this.toSend = item.toSend;
+			this.received = item.received;
+			this.resolve = item.resolve;
+            this.memory[0xF06] = 1;
+		}
+	}
 
     get(addr) {
         return this.memory[addr];
