@@ -35,9 +35,9 @@ MOVED	Ft07	1	Move delay timer value into register t
 KEYD	Ft0A	1	Wait for keypress and store in register t
 LOADD	Fs15	1	Load delay timer with value in register s
 LOADS	Fs18	1	Load sound timer with value in register s
-ADDI	Fs1E	1	Add value in register s to index
+// ADDI	Fs1E	1	Add value in register s to index
 LDSPR	Fs29	1	Load index with sprite from register s
-BCD	Fs33	1	Store the binary coded decimal value of register s at index
+// BCD	Fs33	1	Store the binary coded decimal value of register s at index
 // STOR	Fs55	1	Store the values of register s registers at index
 // READ	Fs65	1	Read back the stored values at index into registers
  */
