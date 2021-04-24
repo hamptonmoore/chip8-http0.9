@@ -143,5 +143,14 @@ fs.readFile(process.argv[2], 'utf8', function(err, data){
   }
 
   output = `1${labels.START.toString(16).padStart(3, "0")}\n` + output;
-  fs.writeFileSync(process.argv[3], output);
+
+  if (process.argv[4] == "-m"){
+  	  output = output.split("\n").join("");
+	  fs.writeFileSync(process.argv[3], output);
+	  console.log(`Wrote ${output.length/2} bytes of assembly written to ${process.argv[3]}`)
+  } else {
+	  fs.writeFileSync(process.argv[3], output);
+	  console.log(`Wrote ${output.split("\n").length} lines of assembly written to ${process.argv[3]}`)
+  }
+
 })
