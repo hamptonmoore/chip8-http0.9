@@ -17,14 +17,14 @@ Instructions
 // LOAD	6snn	2	Load register s with value nn
 // ADD	7snn	2	Add value nn to register s
 // MOVE	8st0	2	Move value from register s to register t
-OR	8st1	2	Perform logical OR on register s and t and store in t
-AND	8st2	2	Perform logical AND on register s and t and store in t
-XOR	8st3	2	Perform logical XOR on register s and t and store in t
-ADDR	8st4	2	Add s to t and store in s - register F set on carry
-SUB	8st5	2	Subtract s from t and store in s - register F set on !borrow
-SHR	8st6	2	Shift bits in s 1 bit right, store in t - bit 0 shifts to register F
-SHL	8stE	2	Shift bits in s 1 bit left, store in t - bit 7 shifts to register F
-SKRNE	9st0	2	Skip next instruction if register s not equal register t
+// OR	8st1	2	Perform logical OR on register s and t and store in t
+// OAND	8st2	2	Perform logical AND on register s and t and store in t
+// XOR	8st3	2	Perform logical XOR on register s and t and store in t
+// ADDR	8st4	2	Add s to t and store in s - register F set on carry
+// SUB	8st5	2	Subtract s from t and store in s - register F set on !borrow
+// SHR	8st6	2	Shift bits in s 1 bit right, store in t - bit 0 shifts to register F
+// SHL	8stE	2	Shift bits in s 1 bit left, store in t - bit 7 shifts to register F
+// SKRNE	9st0	2	Skip next instruction if register s not equal register t
 // LOADI	Annn	1	Load index with value nnn
 // JUMPI	Bnnn	1	Jump to address nnn + index
 RAND	Ctnn	2	Generate random number between 0 and nn and store in t
@@ -122,6 +122,30 @@ fs.readFile(process.argv[2], 'utf8', function(err, data){
                   break;
               case "MOVE":
                   output = addOutput(output, `8${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}0`);
+                  break;
+              case "OR":
+                  output = addOutput(output, `8${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}1`);
+                  break;
+              case "AND":
+                  output = addOutput(output, `8${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}2`);
+                  break;
+              case "XOR":
+                  output = addOutput(output, `8${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}3`);
+                  break;
+              case "ADDR":
+                  output = addOutput(output, `8${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}4`);
+                  break;
+              case "SUB":
+                  output = addOutput(output, `8${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}5`);
+                  break;
+              case "SHR":
+                  output = addOutput(output, `8${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}6`);
+                  break;
+              case "SHL":
+                  output = addOutput(output, `8${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}E`);
+                  break;
+              case "SKRNE":
+                  output = addOutput(output, `9${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}0`);
                   break;
               case "ADD":
                   output = addOutput(output, `7${handleValues(parts[1], labels)}${handleValues(parts.slice(2).join(" "), labels)}`);
